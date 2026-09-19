@@ -4,6 +4,13 @@ import { RequireAdmin, RequireMember, RedirectAuthenticated } from './guards';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { MemberLayout } from '../layouts/MemberLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
+import { usePageTitle } from '../hooks/usePageTitle';
+
+/** Wraps a lazy page so the browser tab gets a per-page title. */
+function Titled({ title, children }) {
+  usePageTitle(title);
+  return children;
+}
 
 // Public
 const Home = lazy(() => import('../pages/public/Home'));
@@ -52,20 +59,20 @@ export const routes = [
     element: <PublicLayout />,
     children: [
       { path: '/', element: <Home /> },
-      { path: '/about', element: <About /> },
-      { path: '/membership', element: <Membership /> },
-      { path: '/news', element: <NewsList /> },
+      { path: '/about', element: <Titled title="About"><About /></Titled> },
+      { path: '/membership', element: <Titled title="Membership"><Membership /></Titled> },
+      { path: '/news', element: <Titled title="News"><NewsList /></Titled> },
       { path: '/news/:slug', element: <NewsDetail /> },
-      { path: '/events', element: <Events /> },
-      { path: '/verify', element: <Verify /> },
-      { path: '/verify/:memberId', element: <Verify /> },
-      { path: '/unauthorized', element: <Unauthorized /> },
-      { path: '/pending', element: <Unauthorized status="pending" /> },
-      { path: '/rejected', element: <Unauthorized status="rejected" /> },
-      { path: '/suspended', element: <Unauthorized status="suspended" /> },
-      { path: '/login', element: <RedirectAuthenticated><Login /></RedirectAuthenticated> },
-      { path: '/reset-password', element: <ResetPassword /> },
-      { path: '/apply', element: <Apply /> },
+      { path: '/events', element: <Titled title="Events"><Events /></Titled> },
+      { path: '/verify', element: <Titled title="Verify Membership"><Verify /></Titled> },
+      { path: '/verify/:memberId', element: <Titled title="Verify Membership"><Verify /></Titled> },
+      { path: '/unauthorized', element: <Titled title="Access Denied"><Unauthorized /></Titled> },
+      { path: '/pending', element: <Titled title="Application Pending"><Unauthorized status="pending" /></Titled> },
+      { path: '/rejected', element: <Titled title="Application Rejected"><Unauthorized status="rejected" /></Titled> },
+      { path: '/suspended', element: <Titled title="Account Suspended"><Unauthorized status="suspended" /></Titled> },
+      { path: '/login', element: <RedirectAuthenticated><Titled title="Sign In"><Login /></Titled></RedirectAuthenticated> },
+      { path: '/reset-password', element: <Titled title="Reset Password"><ResetPassword /></Titled> },
+      { path: '/apply', element: <Titled title="Apply"><Apply /></Titled> },
     ],
   },
   {
@@ -75,13 +82,13 @@ export const routes = [
       </RequireMember>
     ),
     children: [
-      { path: '/member', element: <MemberDashboard /> },
-      { path: '/member/id-card', element: <MemberIDCard /> },
-      { path: '/member/announcements', element: <MemberAnnouncements /> },
-      { path: '/member/events', element: <MemberEvents /> },
-      { path: '/member/vault', element: <Vault /> },
+      { path: '/member', element: <Titled title="Dashboard"><MemberDashboard /></Titled> },
+      { path: '/member/id-card', element: <Titled title="My ID Card"><MemberIDCard /></Titled> },
+      { path: '/member/announcements', element: <Titled title="Announcements"><MemberAnnouncements /></Titled> },
+      { path: '/member/events', element: <Titled title="Events"><MemberEvents /></Titled> },
+      { path: '/member/vault', element: <Titled title="Vault"><Vault /></Titled> },
       { path: '/member/vault/:slug', element: <VaultItem /> },
-      { path: '/member/profile', element: <MemberProfile /> },
+      { path: '/member/profile', element: <Titled title="Profile"><MemberProfile /></Titled> },
     ],
   },
   {
@@ -91,23 +98,23 @@ export const routes = [
       </RequireAdmin>
     ),
     children: [
-      { path: '/admin', element: <AdminDashboard /> },
-      { path: '/admin/applications', element: <AdminApplications /> },
+      { path: '/admin', element: <Titled title="Admin — Dashboard"><AdminDashboard /></Titled> },
+      { path: '/admin/applications', element: <Titled title="Admin — Applications"><AdminApplications /></Titled> },
       { path: '/admin/applications/:id', element: <AdminApplicationDetail /> },
-      { path: '/admin/members', element: <AdminMembers /> },
+      { path: '/admin/members', element: <Titled title="Admin — Members"><AdminMembers /></Titled> },
       { path: '/admin/members/:id', element: <AdminMemberDetail /> },
-      { path: '/admin/id-cards', element: <AdminIDCards /> },
-      { path: '/admin/news', element: <AdminNews /> },
-      { path: '/admin/news/new', element: <AdminNewsEditor /> },
+      { path: '/admin/id-cards', element: <Titled title="Admin — ID Cards"><AdminIDCards /></Titled> },
+      { path: '/admin/news', element: <Titled title="Admin — News"><AdminNews /></Titled> },
+      { path: '/admin/news/new', element: <Titled title="Admin — New Article"><AdminNewsEditor /></Titled> },
       { path: '/admin/news/:id/edit', element: <AdminNewsEditor /> },
-      { path: '/admin/announcements', element: <AdminAnnouncements /> },
-      { path: '/admin/events', element: <AdminEvents /> },
-      { path: '/admin/vault', element: <AdminVault /> },
-      { path: '/admin/notifications', element: <AdminNotifications /> },
-      { path: '/admin/verification', element: <AdminVerification /> },
-      { path: '/admin/activity', element: <AdminActivity /> },
-      { path: '/admin/settings', element: <AdminSettings /> },
+      { path: '/admin/announcements', element: <Titled title="Admin — Announcements"><AdminAnnouncements /></Titled> },
+      { path: '/admin/events', element: <Titled title="Admin — Events"><AdminEvents /></Titled> },
+      { path: '/admin/vault', element: <Titled title="Admin — Vault"><AdminVault /></Titled> },
+      { path: '/admin/notifications', element: <Titled title="Admin — Notifications"><AdminNotifications /></Titled> },
+      { path: '/admin/verification', element: <Titled title="Admin — Verification"><AdminVerification /></Titled> },
+      { path: '/admin/activity', element: <Titled title="Admin — Activity"><AdminActivity /></Titled> },
+      { path: '/admin/settings', element: <Titled title="Admin — Settings"><AdminSettings /></Titled> },
     ],
   },
-  { path: '*', element: <NotFound /> },
+  { path: '*', element: <Titled title="Not Found"><NotFound /></Titled> },
 ];
