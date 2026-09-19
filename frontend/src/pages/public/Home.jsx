@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Lock, Sparkles } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Lock, Sparkles, CalendarDays } from 'lucide-react';
 import api from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Eyebrow, SectionHeading } from '../../components/ui/Card';

@@ -22,7 +22,7 @@ export function RequireAdmin({ children }) {
 }
 
 export function RequireMember({ children }) {
-  const { loading, isAuthenticated, isActiveMember, profile, application } = useAuth();
+  const { loading, isAuthenticated, isAdmin, isActiveMember, profile, application } = useAuth();
   const location = useLocation();
 
   if (loading) return <PageLoader label="Verifying membership" />;
