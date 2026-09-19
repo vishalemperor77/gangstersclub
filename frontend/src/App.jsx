@@ -3,6 +3,7 @@ import { useLocation, useNavigationType, useRoutes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { PageLoader } from './components/ui/Feedback';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { routes } from './routes';
 
 export default function App() {
@@ -25,9 +26,11 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <Suspense fallback={<PageLoader label="Loading" />} key={location.pathname}>
-          {element}
-        </Suspense>
+        <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={<PageLoader label="Loading" />} key={location.pathname}>
+            {element}
+          </Suspense>
+        </ErrorBoundary>
       </AuthProvider>
     </ToastProvider>
   );
