@@ -7,12 +7,14 @@ import { Eyebrow, SectionHeading } from '../../components/ui/Card';
 import { NewsCard, EventCard } from '../../components/public/Cards';
 import { Reveal } from '../../components/ui/Reveal';
 import { PageLoader } from '../../components/ui/Feedback';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Home() {
   const [stats, setStats] = useState(null);
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     let active = true;
@@ -47,12 +49,13 @@ export default function Home() {
       <FeaturedNews news={news} loading={loading} />
       <UpcomingEvents events={events} loading={loading} />
       <VaultTease />
-      <FinalCTA />
+      {!isAuthenticated && <FinalCTA />}
     </>
   );
 }
 
 function Hero() {
+  const { isAuthenticated, isAdmin } = useAuth();
   return (
     <section className="relative flex min-h-[92vh] items-center overflow-hidden">
       {/* Cinematic backdrop */}
@@ -94,9 +97,15 @@ function Hero() {
 
         <Reveal delay={400}>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button to="/apply" size="lg" className="w-full sm:w-auto">
-              Become a Member
-            </Button>
+            {isAuthenticated ? (
+              <Button to={isAdmin ? '/admin' : '/member'} size="lg" className="w-full sm:w-auto">
+                {isAdmin ? 'Admin Dashboard' : 'Member Dashboard'}
+              </Button>
+            ) : (
+              <Button to="/apply" size="lg" className="w-full sm:w-auto">
+                Become a Member
+              </Button>
+            )}
             <Button to="/about" variant="outline" size="lg" className="w-full sm:w-auto">
               Explore the Club
             </Button>
@@ -284,6 +293,7 @@ function UpcomingEvents({ events, loading }) {
 }
 
 function VaultTease() {
+  const { isAuthenticated, isActiveMember } = useAuth();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(200,162,75,0.08),transparent_60%)]" />
@@ -301,9 +311,17 @@ function VaultTease() {
               content and information that never goes public. Members only.
             </p>
             <div className="mt-8">
-              <Button to="/apply" size="lg">
-                Become a Member
-              </Button>
+              {isActiveMember ? (
+                <Button to="/member/vault" size="lg">
+                  Enter the Vault
+                </Button>
+              ) : (
+                !isAuthenticated && (
+                  <Button to="/apply" size="lg">
+                    Become a Member
+                  </Button>
+                )
+              )}
             </div>
           </Reveal>
         </div>

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import api, { clearCache } from '../lib/api';
 
@@ -10,8 +10,14 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [membership, setMembership] = useState(null);
   const [application, setApplication] = useState(null);
+  const identityInFlight = useRef(null);
 
   const loadIdentity = useCallback(async () => {
+    // Sharing the in-flight promise: a sign-in fires BOTH Login's refresh() and
+    // supabase's onAuthStateChange handler. Two parallel /api/auth/me calls
+    // double the traffic (and risk rate limits) for the same answer.
+    if (identityInFlight.current) return identityInFlight.current;
+
     const fetchIdentity = async () => {
       // api.js resolves with the payload itself ({ user, profile, membership,
       // application }) — it is NOT wrapped in supabase's `{ data, error }` shape.
@@ -25,27 +31,34 @@ export function AuthProvider({ children }) {
       return data;
     };
 
-    try {
-      return await fetchIdentity();
-    } catch (err) {
-      // A transient hiccup (rate limit, cold start, dropped connection) must not
-      // make a signed-in member look like a stranger: /admin would bounce the
-      // admin to "Access Denied" and /member to "Pending". Retry once before
-      // clearing the identity. Only a real answer (401/403/404) clears it.
-      const transient = !err?.status || err.status === 429 || err.status >= 500;
-      if (transient) {
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+    identityInFlight.current = (async () => {
+      try {
         try {
           return await fetchIdentity();
-        } catch {
-          /* fall through to the signed-out state below */
+        } catch (err) {
+          // A transient hiccup (rate limit, cold start, dropped connection) must not
+          // make a signed-in member look like a stranger: /admin would bounce the
+          // admin to "Access Denied" and /member to "Pending". Retry once before
+          // clearing the identity. Only a real answer (401/403/404) clears it.
+          const transient = !err?.status || err.status === 429 || err.status >= 500;
+          if (transient) {
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+            try {
+              return await fetchIdentity();
+            } catch {
+              /* fall through to the signed-out state below */
+            }
+          }
+          setProfile(null);
+          setMembership(null);
+          setApplication(null);
+          return null;
         }
+      } finally {
+        identityInFlight.current = null;
       }
-      setProfile(null);
-      setMembership(null);
-      setApplication(null);
-      return null;
-    }
+    })();
+    return identityInFlight.current;
   }, []);
 
   useEffect(() => {
@@ -63,7 +76,14 @@ export function AuthProvider({ children }) {
       setSession(newSession);
       clearCache();
       if (newSession) {
+        // Keep the guards waiting (PageLoader) until the identity for this
+        // session is resolved. Without this, the window between setSession and
+        // loadIdentity resolving has isAuthenticated=true but profile=null, so
+        // RequireMember instantly bounces the admin to /pending before the
+        // profile ever arrives.
+        setLoading(true);
         await loadIdentity();
+        setLoading(false);
       } else {
         setProfile(null);
         setMembership(null);

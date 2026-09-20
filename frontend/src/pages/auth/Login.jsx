@@ -36,6 +36,14 @@ export default function Login() {
       // every sign-in went to /member (and the member shell had no way back to
       // the admin area), so an admin login looked like a member login.
       const identity = await refresh();
+      if (!identity) {
+        // The session exists but the profile could not be loaded (backend
+        // down, network drop). Navigating to /member here would bounce the
+        // user to /pending on a null identity — send them home instead.
+        toast.error('Signed in, but your profile could not be loaded. Please try again.');
+        navigate('/', { replace: true });
+        return;
+      }
       toast.success('Signed in.');
       const from = location.state?.from?.pathname;
       const isAdminNow = identity?.profile?.role === 'admin';

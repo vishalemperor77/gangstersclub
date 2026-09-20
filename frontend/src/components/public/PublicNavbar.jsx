@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/Button';
 import { cn } from '../../lib/utils';
@@ -17,8 +17,20 @@ const LINKS = [
 export function PublicNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const location = useLocation();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, isAdmin, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      navigate('/login');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -66,17 +78,31 @@ export function PublicNavbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           {isAuthenticated ? (
-            <Button to={isAdmin ? '/admin' : '/member'} variant="outline" size="sm">
-              {isAdmin ? 'Admin' : 'Dashboard'}
-            </Button>
+            <>
+              <Button to={isAdmin ? '/admin' : '/member'} variant="outline" size="sm">
+                {isAdmin ? 'Admin' : 'Dashboard'}
+              </Button>
+              <Button
+                onClick={handleSignOut}
+                variant="ghost"
+                size="sm"
+                isLoading={signingOut}
+                aria-label="Sign out"
+              >
+                <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+                Sign out
+              </Button>
+            </>
           ) : (
-            <Button to="/login" variant="ghost" size="sm">
-              Sign in
-            </Button>
+            <>
+              <Button to="/login" variant="ghost" size="sm">
+                Sign in
+              </Button>
+              <Button to="/apply" size="sm">
+                Become a Member
+              </Button>
+            </>
           )}
-          <Button to="/apply" size="sm">
-            Become a Member
-          </Button>
         </div>
 
         <button
@@ -110,17 +136,31 @@ export function PublicNavbar() {
             ))}
             <div className="mt-4 flex flex-col gap-2">
               {isAuthenticated ? (
-                <Button to={isAdmin ? '/admin' : '/member'} variant="outline" size="md">
-                  {isAdmin ? 'Admin Dashboard' : 'Member Dashboard'}
-                </Button>
+                <>
+                  <Button to={isAdmin ? '/admin' : '/member'} variant="outline" size="md">
+                    {isAdmin ? 'Admin Dashboard' : 'Member Dashboard'}
+                  </Button>
+                  <Button
+                    onClick={handleSignOut}
+                    variant="danger"
+                    size="md"
+                    isLoading={signingOut}
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    Sign out
+                  </Button>
+                </>
               ) : (
-                <Button to="/login" variant="surface" size="md">
-                  Sign in
-                </Button>
+                <>
+                  <Button to="/login" variant="surface" size="md">
+                    Sign in
+                  </Button>
+                  <Button to="/apply" size="md">
+                    Become a Member
+                  </Button>
+                </>
               )}
-              <Button to="/apply" size="md">
-                Become a Member
-              </Button>
             </div>
           </div>
         </div>
