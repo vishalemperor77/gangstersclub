@@ -74,6 +74,7 @@ router.get('/admin/members/:id', adminMembers.getMember);
 router.patch('/admin/members/:id', adminMembers.updateMember);
 router.post('/admin/members/:id/suspend', adminMembers.suspendMember);
 router.post('/admin/members/:id/reactivate', adminMembers.reactivateMember);
+router.delete('/admin/members/:id', adminMembers.removeMember);
 
 router.get('/admin/news', news.listAdminNews);
 router.get('/admin/news/:id', news.getAdminNews);

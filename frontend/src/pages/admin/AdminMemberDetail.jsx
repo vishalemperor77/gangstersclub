@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Ban, Check, Pencil, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Ban, Check, Pencil, ShieldCheck, Trash2 } from 'lucide-react';
 import api from '../../lib/api';
 import { useToast } from '../../context/ToastContext';
 import { Card, Badge } from '../../components/ui/Card';
@@ -19,7 +19,7 @@ export default function AdminMemberDetail() {
   const navigate = useNavigate();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [dialog, setDialog] = useState(null); // 'suspend' | 'reactivate' | 'edit'
+  const [dialog, setDialog] = useState(null); // 'suspend' | 'reactivate' | 'edit' | 'remove'
   const [reason, setReason] = useState('');
   const [edit, setEdit] = useState({ full_name: '', username: '', email: '', phone: '', city: '', level: '' });
 
@@ -75,6 +75,20 @@ export default function AdminMemberDetail() {
       await refetch();
     } catch (err) {
       toast.error(err.message || 'Could not reactivate member.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitRemove = async () => {
+    try {
+      setBusy(true);
+      await api.removeMember(id);
+      toast.success('Member removed permanently.');
+      setDialog(null);
+      navigate('/admin/members');
+    } catch (err) {
+      toast.error(err.message || 'Could not remove member.');
     } finally {
       setBusy(false);
     }
@@ -148,6 +162,9 @@ export default function AdminMemberDetail() {
               <Check className="h-4 w-4" /> Reactivate
             </Button>
           )}
+          <Button variant="danger" onClick={() => setDialog('remove')}>
+            <Trash2 className="h-4 w-4" /> Remove Member
+          </Button>
           <a
             href={`/verify/${membership.member_id}`}
             target="_blank"
@@ -243,6 +260,16 @@ export default function AdminMemberDetail() {
         title="Reactivate member?"
         message={`${profile?.full_name} will regain full member access immediately.`}
         confirmLabel="Reactivate"
+        loading={busy}
+      />
+
+      <ConfirmDialog
+        open={dialog === 'remove'}
+        onClose={() => setDialog(null)}
+        onConfirm={submitRemove}
+        title="Remove member permanently?"
+        message={`${profile?.full_name} (${membership.member_id}) will be permanently deleted: account, membership, ID card, verification token and notifications. The application record is kept for audit. This cannot be undone.`}
+        confirmLabel="Remove Permanently"
         loading={busy}
       />
     </div>

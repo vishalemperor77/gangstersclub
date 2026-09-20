@@ -187,4 +187,40 @@ async function reactivateMember(req, res, next) {
   }
 }
 
-module.exports = { listMembers, getMember, updateMember, suspendMember, reactivateMember };
+/** DELETE /api/admin/members/:id — permanently remove a member */
+async function removeMember(req, res, next) {
+  try {
+    const { data: membership, error } = await supabaseAdmin
+      .from('memberships')
+      .select('id, member_id, user_id')
+      .eq('id', req.params.id)
+      .single();
+    if (error) return res.status(404).json({ error: 'Member not found' });
+
+    // An administrator cannot remove their own account from the console.
+    if (membership.user_id === req.profile.id) {
+      return res.status(403).json({ error: 'You cannot remove your own account.' });
+    }
+
+    // Deleting the auth user cascades through every owned row:
+    // profile -> memberships -> member_verification, notifications, event
+    // RSVPs. Applications are detached (user_id set to null) so the audit
+    // record of the application survives the removal.
+    const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(membership.user_id);
+    if (delErr) return res.status(400).json({ error: delErr.message });
+
+    logActivity({
+      adminId: req.profile.id,
+      action: 'member.removed',
+      target: membership.member_id,
+      targetId: membership.id,
+      metadata: { user_id: membership.user_id },
+    });
+
+    return res.json({ message: 'Member removed permanently.' });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { listMembers, getMember, updateMember, suspendMember, reactivateMember, removeMember };

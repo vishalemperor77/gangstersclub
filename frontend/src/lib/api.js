@@ -116,6 +116,7 @@ export const api = {
   updateMember: (id, data) => request(`admin/members/${id}`, { method: 'PATCH', body: data }),
   suspendMember: (id, reason) => request(`admin/members/${id}/suspend`, { method: 'POST', body: { reason } }),
   reactivateMember: (id) => request(`admin/members/${id}/reactivate`, { method: 'POST' }),
+  removeMember: (id) => request(`admin/members/${id}`, { method: 'DELETE' }),
 
   adminNews: (q = {}) => request('admin/news', { query: q }),
   adminNewsItem: (id) => request(`admin/news/${id}`),
