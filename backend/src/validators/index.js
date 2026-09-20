@@ -17,14 +17,18 @@ const applicationSchema = z.object({
   profile_photo_url: z.string().url().optional().or(z.literal('')),
 });
 
-const newsSchema = z.object({
-  title: z.string().min(3, 'Title is required').max(160),
-  slug: z
+const slugField = (msg) =>
+  z
     .string()
-    .min(3)
+    .min(3, msg)
     .max(160)
     .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers and hyphens')
-    .optional(),
+    .optional()
+    .or(z.literal('')); // empty = auto-generate on the server
+
+const newsSchema = z.object({
+  title: z.string().min(3, 'Title is required').max(160),
+  slug: slugField(),
   excerpt: z.string().min(10).max(400),
   content: z.string().min(20),
   category: z.string().max(40).optional(),
@@ -56,18 +60,20 @@ const eventSchema = z.object({
 
 const vaultSchema = z.object({
   title: z.string().min(3).max(160),
-  slug: z
-    .string()
-    .min(3)
-    .max(160)
-    .regex(/^[a-z0-9-]+$/)
-    .optional(),
+  slug: slugField(),
   category: z.string().max(40).optional(),
   excerpt: z.string().min(10).max(400),
   content: z.string().min(20),
   cover_image_url: z.string().url().optional().or(z.literal('')),
   status: z.enum(['draft', 'published', 'unpublished']).optional(),
 });
+
+/** PATCH-friendly variants: every field optional so partial updates (e.g. a
+ *  status toggle from the list page) validate without resending the body. */
+const newsUpdateSchema = newsSchema.partial();
+const announcementUpdateSchema = announcementSchema.partial();
+const eventUpdateSchema = eventSchema.partial();
+const vaultUpdateSchema = vaultSchema.partial();
 
 const memberUpdateSchema = z.object({
   full_name: z.string().min(2).max(80).optional(),
@@ -109,9 +115,13 @@ function validate(schema) {
 module.exports = {
   applicationSchema,
   newsSchema,
+  newsUpdateSchema,
   announcementSchema,
+  announcementUpdateSchema,
   eventSchema,
+  eventUpdateSchema,
   vaultSchema,
+  vaultUpdateSchema,
   memberUpdateSchema,
   paginationSchema,
   validate,

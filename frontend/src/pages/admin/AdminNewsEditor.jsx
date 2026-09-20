@@ -78,7 +78,12 @@ export default function AdminNewsEditor() {
       }
       navigate('/admin/news');
     } catch (err) {
-      toast.error(err.message || 'Could not save.');
+      if (err.fields) {
+        setErrors(err.fields);
+        toast.error('Please correct the highlighted fields.');
+      } else {
+        toast.error(err.message || 'Could not save.');
+      }
     } finally {
       setSaving(false);
     }

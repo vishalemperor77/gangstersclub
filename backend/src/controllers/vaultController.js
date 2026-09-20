@@ -86,7 +86,11 @@ async function createVaultItem(req, res, next) {
 /** ADMIN: PATCH /api/admin/vault/:id */
 async function updateVaultItem(req, res, next) {
   try {
-    const { data, error } = await supabaseAdmin.from('vault_content').update(req.validated).eq('id', req.params.id).select('*').single();
+    const body = { ...req.validated };
+    if (!body.slug) delete body.slug; // absent/empty keeps the current slug
+    else body.slug = await uniqueSlug('vault_content', body.slug, req.params.id);
+
+    const { data, error } = await supabaseAdmin.from('vault_content').update(body).eq('id', req.params.id).select('*').single();
     if (error) return res.status(400).json({ error: error.message });
 
     logActivity({ adminId: req.profile.id, action: 'vault.updated', target: data.title, targetId: data.id });

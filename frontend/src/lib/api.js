@@ -49,6 +49,7 @@ async function request(path, { method = 'GET', body, query, signal, cacheKey, tt
     const err = new Error(json.error || `Request failed (${res.status})`);
     err.status = res.status;
     err.payload = json;
+    if (json.fields) err.fields = json.fields; // per-field validation messages
     throw err;
   }
 

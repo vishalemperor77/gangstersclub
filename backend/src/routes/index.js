@@ -78,22 +78,22 @@ router.post('/admin/members/:id/reactivate', adminMembers.reactivateMember);
 router.get('/admin/news', news.listAdminNews);
 router.get('/admin/news/:id', news.getAdminNews);
 router.post('/admin/news', validate(require('../validators').newsSchema), news.createNews);
-router.patch('/admin/news/:id', validate(require('../validators').newsSchema), news.updateNews);
+router.patch('/admin/news/:id', validate(require('../validators').newsUpdateSchema), news.updateNews);
 router.delete('/admin/news/:id', news.deleteNews);
 
 router.get('/admin/announcements', announcements.listAdminAnnouncements);
 router.post('/admin/announcements', validate(require('../validators').announcementSchema), announcements.createAnnouncement);
-router.patch('/admin/announcements/:id', validate(require('../validators').announcementSchema), announcements.updateAnnouncement);
+router.patch('/admin/announcements/:id', validate(require('../validators').announcementUpdateSchema), announcements.updateAnnouncement);
 router.delete('/admin/announcements/:id', announcements.deleteAnnouncement);
 
 router.get('/admin/events', events.listAdminEvents);
 router.post('/admin/events', validate(require('../validators').eventSchema), events.createEvent);
-router.patch('/admin/events/:id', validate(require('../validators').eventSchema), events.updateEvent);
+router.patch('/admin/events/:id', validate(require('../validators').eventUpdateSchema), events.updateEvent);
 router.delete('/admin/events/:id', events.deleteEvent);
 
 router.get('/admin/vault', vault.listAdminVault);
 router.post('/admin/vault', validate(require('../validators').vaultSchema), vault.createVaultItem);
-router.patch('/admin/vault/:id', validate(require('../validators').vaultSchema), vault.updateVaultItem);
+router.patch('/admin/vault/:id', validate(require('../validators').vaultUpdateSchema), vault.updateVaultItem);
 router.delete('/admin/vault/:id', vault.deleteVaultItem);
 
 router.post('/admin/notifications', notifications.adminNotify);

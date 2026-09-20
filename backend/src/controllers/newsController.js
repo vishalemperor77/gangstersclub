@@ -128,10 +128,13 @@ async function updateNews(req, res, next) {
     const body = { ...req.validated };
     const id = req.params.id;
 
-    const { data: current } = await supabaseAdmin.from('news').select('title, status, published_at').eq('id', id).single();
+    const { data: current } = await supabaseAdmin.from('news').select('title, slug, status, published_at').eq('id', id).single();
     if (!current) return res.status(404).json({ error: 'Article not found' });
 
-    if (body.slug === undefined) delete body.slug;
+    // Empty slug = "leave blank to auto-generate": absent keeps the current
+    // slug, an empty string regenerates one from the title.
+    if (body.slug === undefined || body.slug === '') delete body.slug;
+    else if (body.slug !== current.slug) body.slug = await uniqueSlug('news', body.slug, id);
     if (body.status === 'published' && current.status !== 'published') body.published_at = new Date().toISOString();
     if (body.status && body.status !== 'published') body.published_at = null;
 
