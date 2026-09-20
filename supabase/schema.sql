@@ -362,8 +362,13 @@ begin
   values (v_app.user_id, v_member_id, 'active', now(), p_admin_id, p_application_id)
   returning id into v_membership;
 
+  -- Approving an application promotes the applicant to 'member' — but it must
+  -- never DEMOTE an existing administrator: approving an admin's own
+  -- application used to flip profiles.role to 'member', which silently locked
+  -- them out of /admin (RequireAdmin only allows role = 'admin').
   update public.profiles
-     set role = 'member'::user_role, status = 'active'
+     set role = case when role = 'admin'::user_role then role else 'member'::user_role end,
+         status = 'active'
    where id = v_app.user_id;
 
   -- Resolution order: explicit caller value -> database setting -> safe default.

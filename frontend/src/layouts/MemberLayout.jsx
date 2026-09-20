@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Bell,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from '../components/ui/Avatar';
@@ -28,7 +29,7 @@ const NAV = [
 ];
 
 export function MemberLayout() {
-  const { profile, membership, signOut } = useAuth();
+  const { profile, membership, signOut, isAdmin } = useAuth();
   const { unread } = useNotifications();
   const [open, setOpen] = useState(false);
   const location = useLocation();
@@ -41,6 +42,7 @@ export function MemberLayout() {
           profile={profile}
           membership={membership}
           unread={unread}
+          isAdmin={isAdmin}
           onSignOut={signOut}
         />
       </aside>
@@ -54,6 +56,7 @@ export function MemberLayout() {
               profile={profile}
               membership={membership}
               unread={unread}
+              isAdmin={isAdmin}
               onSignOut={signOut}
               onNavigate={() => setOpen(false)}
             />
@@ -103,7 +106,7 @@ export function MemberLayout() {
   );
 }
 
-function SidebarContent({ profile, membership, unread, onSignOut, onNavigate }) {
+function SidebarContent({ profile, membership, unread, isAdmin, onSignOut, onNavigate }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-5">
@@ -161,6 +164,26 @@ function SidebarContent({ profile, membership, unread, onSignOut, onNavigate }) 
           ))}
         </ul>
       </nav>
+
+      {/* Administrators reviewing the member experience need a way back to the
+          console — the member shell has no public navbar, so without this the
+          only route to /admin was typing the URL. */}
+      {isAdmin && (
+        <div className="border-t border-white/[0.06] px-3 py-3">
+          <p className="px-3 py-2 font-mono text-2xs uppercase tracking-[0.25em] text-silver-600">
+            Administration
+          </p>
+          <Link
+            to="/admin"
+            onClick={onNavigate}
+            className="flex items-center gap-3 border-l-2 border-transparent px-3 py-2.5 text-sm text-gold-300 transition-all hover:border-gold-400 hover:bg-gold-500/[0.07] hover:text-gold-200"
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span className="flex-1">Control Center</span>
+            <span className="font-mono text-2xs uppercase tracking-[0.15em] text-silver-600">admin</span>
+          </Link>
+        </div>
+      )}
 
       <div className="border-t border-white/[0.06] p-3">
         <button

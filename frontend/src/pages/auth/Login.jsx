@@ -7,7 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Field, Input } from '../../components/ui/Input';
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, refresh } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,9 +31,15 @@ export default function Login() {
     try {
       setLoading(true);
       await signIn(form.email, form.password);
+      // Load the identity for the new session so the redirect matches the role:
+      // an administrator belongs on /admin, a member on /member. Before this,
+      // every sign-in went to /member (and the member shell had no way back to
+      // the admin area), so an admin login looked like a member login.
+      const identity = await refresh();
       toast.success('Signed in.');
       const from = location.state?.from?.pathname;
-      navigate(from || '/member', { replace: true });
+      const isAdminNow = identity?.profile?.role === 'admin';
+      navigate(from || (isAdminNow ? '/admin' : '/member'), { replace: true });
     } catch (err) {
       toast.error(err.message || 'Invalid credentials.');
     } finally {
