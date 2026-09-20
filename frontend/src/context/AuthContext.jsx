@@ -12,13 +12,35 @@ export function AuthProvider({ children }) {
   const [application, setApplication] = useState(null);
 
   const loadIdentity = useCallback(async () => {
-    try {
-      const { data } = await api.me();
+    const fetchIdentity = async () => {
+      // api.js resolves with the payload itself ({ user, profile, membership,
+      // application }) — it is NOT wrapped in supabase's `{ data, error }` shape.
+      // Destructuring `{ data }` here left `data` undefined, so loadIdentity()
+      // threw on every call and every signed-in user (admins included) was
+      // treated as a stranger: /admin redirected to "Access Denied".
+      const data = await api.me();
       setProfile(data.profile);
       setMembership(data.membership);
       setApplication(data.application);
       return data;
+    };
+
+    try {
+      return await fetchIdentity();
     } catch (err) {
+      // A transient hiccup (rate limit, cold start, dropped connection) must not
+      // make a signed-in member look like a stranger: /admin would bounce the
+      // admin to "Access Denied" and /member to "Pending". Retry once before
+      // clearing the identity. Only a real answer (401/403/404) clears it.
+      const transient = !err?.status || err.status === 429 || err.status >= 500;
+      if (transient) {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        try {
+          return await fetchIdentity();
+        } catch {
+          /* fall through to the signed-out state below */
+        }
+      }
       setProfile(null);
       setMembership(null);
       setApplication(null);
