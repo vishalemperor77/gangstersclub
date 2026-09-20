@@ -32,7 +32,7 @@ export default function About() {
       <section className="container-page py-24 lg:py-32">
         <div className="mx-auto max-w-4xl text-center">
           <Reveal>
-            <Eyebrow className="mb-5">Established 2019</Eyebrow>
+            <Eyebrow className="mb-5">Established 2026</Eyebrow>
             <h1 className="display-2 text-balance">
               A private club for people who <span className="text-metal">move quietly</span>
             </h1>

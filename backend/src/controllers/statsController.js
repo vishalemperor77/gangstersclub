@@ -62,7 +62,7 @@ async function getPublicStats(req, res, next) {
       active_members: members.count ?? 0,
       club_news: news.count ?? 0,
       upcoming_events: events.count ?? 0,
-      years_active: new Date().getFullYear() - 2019,
+      years_active: new Date().getFullYear() - 2026,
     });
   } catch (err) {
     return next(err);
