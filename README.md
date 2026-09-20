@@ -72,6 +72,13 @@ npm run dev               # http://localhost:5173
 
 Build: `npm run build` → static output in `frontend/dist`.
 
+Tests: `npm test` (Vitest + Testing Library, jsdom). The suite smoke-renders the
+real app (`src/__tests__/routes.test.jsx`), covers the ErrorBoundary fallback,
+the per-page titles and the Tailwind theme scales. `npm run test:watch` for
+watch mode. `src/test/setup.js` stubs `fetch`, so the tests never touch the
+network — pages must degrade gracefully on empty API payloads, which is exactly
+what the smoke tests assert.
+
 ---
 
 ## The membership flow

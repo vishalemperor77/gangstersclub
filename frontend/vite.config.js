@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
@@ -18,5 +18,14 @@ export default defineConfig({
         },
       },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+    // Rendering the real app (providers + lazy routes + guards) is slower than
+    // a unit test; keep this comfortably above RTL's asyncUtilTimeout (4s) so a
+    // failed query reports its actual error instead of a test timeout.
+    testTimeout: 15000,
   },
 });
